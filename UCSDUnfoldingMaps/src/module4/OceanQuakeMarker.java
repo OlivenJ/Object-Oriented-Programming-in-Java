@@ -31,9 +31,34 @@ public class OceanQuakeMarker extends EarthquakeMarker {
 		
 		// TODO: Implement this method
 		
+float magni = this.getMagnitude();
+
+				
+		
+		// save previous styling
+		pg.pushStyle();
+			if(!this.isOnLand()) {
+		// determine color of marker from depth
+		//colorDetermine(pg);
+		
+		// call abstract method implemented in child class to draw marker shape
+		//drawEarthquake(pg, x, y);
+		
+		//pg.fill(255,255,255);
+		if(magni > THRESHOLD_MODERATE ) {
+			pg.ellipse(x,y,12,12);
+			
+		}else if(magni >= THRESHOLD_LIGHT &&
+				magni<= THRESHOLD_MODERATE) {
+			pg.ellipse(x,y, 7,7);
+			
+		}else {
+				pg.ellipse(x, y, 5, 5);
+		}
+		
 	}
 	
-
+	}
 
 	
 

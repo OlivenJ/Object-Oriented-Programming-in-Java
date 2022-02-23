@@ -2,7 +2,7 @@ package module4;
 
 import de.fhpotsdam.unfolding.data.PointFeature;
 import de.fhpotsdam.unfolding.marker.SimplePointMarker;
-import processing.core.PGraphics;
+import processing.core.*;
 
 /** Implements a visual marker for earthquakes on an earthquake map
  * 
@@ -18,12 +18,12 @@ public abstract class EarthquakeMarker extends SimplePointMarker
 
 	// SimplePointMarker has a field "radius" which is inherited
 	// by Earthquake marker:
-	// protected float radius;
+	 protected float radius;
 	//
 	// You will want to set this in the constructor, either
 	// using the thresholds below, or a continuous function
 	// based on magnitude. 
-  
+    
 	
 	
 	/** Greater than or equal to this threshold is a moderate earthquake */
@@ -58,6 +58,12 @@ public abstract class EarthquakeMarker extends SimplePointMarker
 
 	// calls abstract method drawEarthquake and then checks age and draws X if needed
 	public void draw(PGraphics pg, float x, float y) {
+		
+
+		float magni = this.getMagnitude();
+
+				
+		
 		// save previous styling
 		pg.pushStyle();
 			
@@ -66,7 +72,20 @@ public abstract class EarthquakeMarker extends SimplePointMarker
 		
 		// call abstract method implemented in child class to draw marker shape
 		drawEarthquake(pg, x, y);
+		if(this.isOnLand()) {
+		//pg.fill(255,255,255);
+		if(magni > THRESHOLD_MODERATE ) {
+			pg.rect(x,y,12,12);
+			
+		}else if(magni >= THRESHOLD_LIGHT &&
+				magni<= THRESHOLD_MODERATE) {
+			pg.rect(x,y, 7, 7);
+			
+		}else {
+				pg.rect(x, y, 5, 5);
+		}
 		
+		}
 		// OPTIONAL TODO: draw X over marker if within past day		
 		
 		// reset to previous styling
@@ -81,6 +100,20 @@ public abstract class EarthquakeMarker extends SimplePointMarker
 	// You might find the getters below helpful.
 	private void colorDetermine(PGraphics pg) {
 		//TODO: Implement this method
+		float depth = this.getDepth();
+		
+		if(depth >300) {
+			pg.fill(255,0,0);
+			
+		}else if(depth >= 70 && depth <= 300 ) {
+			pg.fill(0,255,0);
+			
+		}else {
+			pg.fill(0,0,255);
+			
+		}
+		
+		
 	}
 	
 	
