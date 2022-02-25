@@ -13,6 +13,7 @@ import de.fhpotsdam.unfolding.marker.Marker;
 import de.fhpotsdam.unfolding.marker.MultiMarker;
 import de.fhpotsdam.unfolding.providers.Google;
 import de.fhpotsdam.unfolding.providers.MBTilesMapProvider;
+import de.fhpotsdam.unfolding.providers.Microsoft;
 import de.fhpotsdam.unfolding.utils.MapUtils;
 import parsing.ParseFeed;
 import processing.core.PApplet;
@@ -70,7 +71,7 @@ public class EarthquakeCityMap extends PApplet {
 		    earthquakesURL = "2.5_week.atom";  // The same feed, but saved August 7, 2015
 		}
 		else {
-			map = new UnfoldingMap(this, 200, 50, 650, 600, new Google.GoogleMapProvider());
+			map = new UnfoldingMap(this, 200, 50, 650, 600, new Microsoft.HybridProvider());
 			// IF YOU WANT TO TEST WITH A LOCAL FILE, uncomment the next line
 		    //earthquakesURL = "2.5_week.atom";
 		}
@@ -143,11 +144,52 @@ public class EarthquakeCityMap extends PApplet {
 	// set the lastSelected to be the first marker found under the cursor
 	// Make sure you do not select two markers.
 	// 
-	private void selectMarkerIfHover(List<Marker> markers)
-	{
-		// TODO: Implement this method
-	}
 	
+	private void selectMarkerIfHover(List<Marker> markers)
+	{ 
+		// TODO: Implement this method
+		if(markers.get(0) instanceof CityMarker) {
+			for(Marker m: markers) {
+				
+				if(m.isInside(map, mouseX, mouseY)) {
+					
+					if(lastSelected == null) {
+						
+						lastSelected = (CommonMarker) m;
+						lastSelected.setSelected(true);
+						
+					// fill(color(255,255,255));
+					// rect(mouseX, mouseY, 100, 25);
+					}
+					
+				//}
+				
+			}
+				
+			}	
+			
+			
+		}else if (markers.get(0) instanceof EarthquakeMarker) {
+			for(Marker m : markers) {
+				if(m.isInside(map, mouseX, mouseY)) {
+					
+					
+					if(lastSelected == null) {
+						
+						lastSelected = (CommonMarker) m;
+						lastSelected.setSelected(true);
+						lastSelected.showTitle(g, serialVersionUID, serialVersionUID);
+						
+					// fill(color(255,255,255));
+					// rect(mouseX, mouseY, 100, 25);
+					}
+				}
+				
+			}
+			
+		}
+		
+	}
 	/** The event handler for mouse clicks
 	 * It will display an earthquake and its threat circle of cities
 	 * Or if a city is clicked, it will display all the earthquakes 
@@ -159,6 +201,93 @@ public class EarthquakeCityMap extends PApplet {
 		// TODO: Implement this method
 		// Hint: You probably want a helper method or two to keep this code
 		// from getting too long/disorganized
+		{
+			// clear the last selection
+			if (lastClicked != null) {
+				lastClicked.setHidden(false);
+				lastClicked = null;
+				unhideMarkers();
+				
+			} else {
+			selectMarkerIfClicked(quakeMarkers);
+			
+			selectMarkerIfClicked(cityMarkers);
+			
+			}
+		}
+		
+	}
+	
+	private void selectMarkerIfClicked(List<Marker> markers) {
+		if(markers.get(0) instanceof CityMarker) {
+			for(Marker m : markers) {
+				if(m.isInside(map, mouseX, mouseY)) {
+					
+					lastClicked = (CommonMarker) m;
+					lastClicked.setHidden(false);
+					
+					for(Marker m2: markers) {
+						if(!m2.equals(m)) {
+							m2.setHidden(true);
+						}
+						
+					}
+					
+					hideOutQuake(m);
+					
+				}
+				
+			}
+			
+		} else if(markers.get(0) instanceof EarthquakeMarker) {
+			for(Marker m:markers) {
+				if(m.isInside(map, mouseX, mouseY)) {
+					
+					lastClicked = (CommonMarker) m;
+					lastClicked.setHidden(false);
+					
+					for(Marker m2:markers) {
+						if(!m2.equals(m)) {
+							m2.setHidden(true);
+						}
+					}
+					hideOutCity(m);
+				}
+			}
+			
+		}
+		
+		
+		
+	}
+	
+	private void hideOutQuake(Marker m) {
+		for(Marker quake:quakeMarkers) {
+			Location quakeLoc = quake.getLocation();
+			double distance = m.getDistanceTo(quakeLoc);
+			double threatRad = ((EarthquakeMarker) quake).threatCircle();
+			if(distance > threatRad) {
+				quake.setHidden(true);
+			}
+			
+		}
+		
+		
+	}
+	
+	private void hideOutCity(Marker m) {
+		for(Marker city: cityMarkers) {
+			Location cityLoc = city.getLocation();
+			double distance = m.getDistanceTo(cityLoc);
+			double threatRad = ((EarthquakeMarker) m).threatCircle();
+			
+			if(distance > threatRad) {
+				city.setHidden(true);
+			}
+			
+			
+		}
+		
 	}
 	
 	
