@@ -2,6 +2,7 @@ package module6;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 
 import de.fhpotsdam.unfolding.UnfoldingMap;
@@ -14,6 +15,7 @@ import de.fhpotsdam.unfolding.marker.Marker;
 import de.fhpotsdam.unfolding.marker.MultiMarker;
 import de.fhpotsdam.unfolding.providers.Google;
 import de.fhpotsdam.unfolding.providers.MBTilesMapProvider;
+import de.fhpotsdam.unfolding.providers.Microsoft;
 import de.fhpotsdam.unfolding.utils.MapUtils;
 import parsing.ParseFeed;
 import processing.core.PApplet;
@@ -73,7 +75,7 @@ public class EarthquakeCityMap extends PApplet {
 		    earthquakesURL = "2.5_week.atom";  // The same feed, but saved August 7, 2015
 		}
 		else {
-			map = new UnfoldingMap(this, 200, 50, 650, 600, new Google.GoogleMapProvider());
+			map = new UnfoldingMap(this, 200, 50, 650, 600, new Microsoft.HybridProvider());
 			// IF YOU WANT TO TEST WITH A LOCAL FILE, uncomment the next line
 		    //earthquakesURL = "2.5_week.atom";
 		}
@@ -85,7 +87,7 @@ public class EarthquakeCityMap extends PApplet {
 		//earthquakesURL = "test2.atom";
 		
 		// Uncomment this line to take the quiz
-		//earthquakesURL = "quiz2.atom";
+		earthquakesURL = "quiz2.atom";
 		
 		
 		// (2) Reading in earthquake data and geometric properties
@@ -116,7 +118,8 @@ public class EarthquakeCityMap extends PApplet {
 	    }
 
 	    // could be used for debugging
-	    printQuakes();
+	    //printQuakes();
+	   // sortAndPrint(2000);
 	 		
 	    // (3) Add markers to map
 	    //     NOTE: Country markers are not added to the map.  They are used
@@ -133,12 +136,54 @@ public class EarthquakeCityMap extends PApplet {
 		map.draw();
 		addKey();
 		
+		
 	}
 	
 	
 	// TODO: Add the method:
 	//   private void sortAndPrint(int numToPrint)
 	// and then call that method from setUp
+	
+	private void sortAndPrint(int numToPrint) {
+		HashMap<String, Integer> magCounter = new HashMap<String, Integer>();
+		
+		
+		ArrayList<EarthquakeMarker> sortquake = new ArrayList<EarthquakeMarker>();
+		 for(Marker m :quakeMarkers ) {
+			 sortquake.add((EarthquakeMarker) m);
+		 }
+		
+		Collections.sort(sortquake);
+		/*
+		if(sortquake.size() < numToPrint) {
+			
+			
+		}else {
+			for(int i = 0; i < numToPrint; i ++) {
+				//System.out.println(sortquake.get(i));
+			}
+			
+		}
+		*/
+		for(EarthquakeMarker em: sortquake) {
+			String mag =  Float.toString(em.getMagnitude());
+			//System.out.println(em);
+			if(magCounter.containsKey(mag)) {
+				int values = magCounter.get(mag);
+				magCounter.put(mag, values + 1 );
+				
+			}else {
+				magCounter.put(mag, 1);
+			}
+			
+			
+		}
+		
+		for(String s: magCounter.keySet()) {
+			System.out.print(s +": " + magCounter.get(s) + "\n");
+		}
+		
+	}
 	
 	/** Event handler that gets called automatically when the 
 	 * mouse moves.
@@ -164,6 +209,7 @@ public class EarthquakeCityMap extends PApplet {
 		if (lastSelected != null) {
 			return;
 		}
+		
 		
 		for (Marker m : markers) 
 		{
@@ -251,6 +297,35 @@ public class EarthquakeCityMap extends PApplet {
 		}
 	}
 	
+	private void drawInformation() {
+		
+		if(lastClicked != null) return;
+		
+		for (Marker m : quakeMarkers) {
+			
+			int xbase = 50;
+			int ybase = 275;
+			
+			EarthquakeMarker marker = (EarthquakeMarker)m;
+			if (!marker.isHidden() && marker.isInside(map, mouseX, mouseY)) {
+			String title = marker.getTitle();	
+				
+				
+				lastClicked = marker;
+				
+				fill(0,0,0);
+				text(title, xbase, ybase);
+				
+				
+				
+				return;
+			}
+		}
+		
+		
+		
+	}
+	
 	// loop over and unhide all markers
 	private void unhideMarkers() {
 		for(Marker marker : quakeMarkers) {
@@ -324,10 +399,25 @@ public class EarthquakeCityMap extends PApplet {
 		line(centerx-8, centery+8, centerx+8, centery-8);
 		
 		
+		//Save the space for the information window
+		fill(255,255,255);		
+		rect(xbase, ybase+275, 150, 250);
+		
+		fill(0,0,0);
+		text("Information", xbase + 5, ybase + 300);
+		
+		
+		if(lastClicked != null) {
+			
+			fill(0,0,0);
+			text(lastClicked.getInfo(), xbase+ 5, ybase + 355);
+			
+		}else {
+			return;
+		}
+		
 	}
 
-	
-	
 	// Checks whether this quake occurred on land.  If it did, it sets the 
 	// "country" property of its PointFeature to the country where it occurred
 	// and returns true.  Notice that the helper method isInCountry will
@@ -373,8 +463,7 @@ public class EarthquakeCityMap extends PApplet {
 		}
 		System.out.println("OCEAN QUAKES: " + totalWaterQuakes);
 	}
-	
-	
+
 	
 	// helper method to test whether a given earthquake is in a given country
 	// This will also add the country property to the properties of the earthquake feature if 

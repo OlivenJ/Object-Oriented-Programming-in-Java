@@ -1,6 +1,6 @@
 package module6;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.util.HashMap;
 import java.util.List;
 
@@ -26,6 +26,10 @@ public class AirportMap extends PApplet {
 	UnfoldingMap map;
 	private List<Marker> airportList;
 	List<Marker> routeList;
+	private List<Marker> aussieList;
+	private List<Marker> chinaList;
+	HashMap<String, Integer> airportCount;
+	HashMap<String, Double> airportCountSD;
 	
 	public void setup() {
 		// setting up PAppler
@@ -41,6 +45,7 @@ public class AirportMap extends PApplet {
 		// list for markers, hashmap for quicker access when matching with routes
 		airportList = new ArrayList<Marker>();
 		HashMap<Integer, Location> airports = new HashMap<Integer, Location>();
+		airportCount = new HashMap<String, Integer>();
 		
 		// create markers from features
 		for(PointFeature feature : features) {
@@ -52,6 +57,19 @@ public class AirportMap extends PApplet {
 			// put airport in hashmap with OpenFlights unique id for key
 			airports.put(Integer.parseInt(feature.getId()), feature.getLocation());
 		
+		}
+		
+		aussieList = new ArrayList<Marker>();
+		chinaList = new ArrayList<Marker>();
+		
+		for(Marker m : airportList) {
+			if(m.getProperty("country").equals("Australia")) {
+				aussieList.add(m);
+				
+			}else if(m.getProperty("country").equals("China")) {
+				chinaList.add(m);
+			}
+			
 		}
 		
 		
@@ -72,7 +90,7 @@ public class AirportMap extends PApplet {
 			
 			SimpleLinesMarker sl = new SimpleLinesMarker(route.getLocations(), route.getProperties());
 		
-			System.out.println(sl.getProperties());
+			//System.out.println(sl.getProperties());
 			
 			//UNCOMMENT IF YOU WANT TO SEE ALL ROUTES
 			//routeList.add(sl);
@@ -83,13 +101,76 @@ public class AirportMap extends PApplet {
 		//UNCOMMENT IF YOU WANT TO SEE ALL ROUTES
 		//map.addMarkers(routeList);
 		
-		map.addMarkers(airportList);
+		//map.addMarkers(airportList);
+		map.addMarkers(aussieList);
+		countPerCountry();
+		printData();
 		
 	}
 	
 	public void draw() {
 		background(0);
 		map.draw();
+		
+	}
+	
+	
+	
+	public void countPerCountry() {
+		for(Marker m : airportList) {
+			String countryName = (String) m.getProperty("country");
+			if(!airportCount.containsKey(countryName)) {
+				
+				airportCount.put(countryName, 1);
+			}else {
+				int counter = airportCount.get(countryName); 
+				airportCount.put(countryName, counter + 1 );
+				
+			}
+		
+			
+		}
+		
+	}
+	
+	public void countPerCountrySD() {
+		double sum = 0.0;
+		double count = 0.0;
+		double avg = 0.0;
+		double sd = 0.0;
+		
+		airportCountSD = new HashMap<String, Double>();
+		
+		for(String s : airportCount.keySet()) {
+			
+			sum += airportCount.get(s);
+			count ++ ;
+			
+		}
+		avg = sum / count;
+		sum = 0.0;
+		
+		for(String s: airportCount.keySet()) {
+			
+			sum += Math.pow(airportCount.get(s) - avg,2);
+			
+		}
+		sd = sum / count;
+		
+		for(String s: airportCount.keySet()) {
+			
+			airportCountSD.put(s, (airportCount.get(s) - avg)/sd);
+			
+		}
+	}
+	
+	public void printData() {
+		
+		for(String s :airportCountSD.keySet()) {
+			
+			System.out.println(s + airportCountSD.get(s));
+			
+		}
 		
 	}
 	
